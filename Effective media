@@ -1,0 +1,260 @@
+package.json
+{
+  "name": "effective-media",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview"
+  },
+  "dependencies": {
+    "astro": "^4.13.0",
+    "@astrojs/mdx": "^3.1.0",
+    "@astrojs/sitemap": "^3.1.0"
+  }
+}
+
+astro.config.mjs
+import { defineConfig } from "astro/config";
+import mdx from "@astrojs/mdx";
+import sitemap from "@astrojs/sitemap";
+
+export default defineConfig({
+  site: "https://effective-media.netlify.app",
+  integrations: [mdx(), sitemap()],
+});
+
+netlify.toml
+[build]
+  command = "npm run build"
+  publish = "dist"
+
+[build.environment]
+  NODE_VERSION = "20"
+
+src/layouts/BaseLayout.astro
+***
+const { title = "Effective Media", description = "Simple text and motion stories on tech, science, world records, and world news." } = Astro.props;
+***
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href="/" />
+    <style>
+      :root { --accent: #e1112a; --text: #111; --muted: #666; }
+      body { margin: 0; font-family: system-ui, Segoe UI, Roboto, Inter, sans-serif; line-height: 1.6; color: var(--text); }
+      a { color: var(--accent); text-decoration: none; }
+      a:hover { text-decoration: underline; }
+      .container { max-width: 960px; margin: 0 auto; padding: 24px; }
+      header, footer { border-color: #eee; }
+      header { padding: 16px 24px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; }
+      nav a { margin-left: 16px; color: var(--text); }
+      .brand { font-weight: 800; color: var(--text); }
+      .brand span { color: var(--accent); }
+      footer { padding: 24px; border-top: 1px solid #eee; }
+      .btn { background: var(--accent); color: #fff; border: 0; padding: 10px 16px; border-radius: 8px; cursor: pointer; }
+      .card { padding: 24px; border: 1px solid #eee; border-radius: 12px; background: #fff; }
+      .grid { display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }
+      input, textarea { width: 100%; max-width: 480px; padding: 10px; border: 1px solid #ddd; border-radius: 8px; }
+      label { display: block; font-weight: 600; margin: 10px 0 6px; }
+      small { color: var(--muted); }
+      .hidden { display: none; }
+    </style>
+  </head>
+  <body>
+    <header>
+      <a href="/" class="brand">Effective <span>Media</span></a>
+      <nav>
+        <a href="/about">About</a>
+        <a href="/blog">Blog</a>
+        <a href="/contact">Contact</a>
+      </nav>
+    </header>
+    <main class="container"><slot /></main>
+    <footer>
+      <div class="container">
+        <div>© {new Date().getFullYear()} Effective Media</div>
+        <div style="margin-top:8px">
+          <a href="/privacy">Privacy</a> · <a href="/terms">Terms</a>
+        </div>
+        <div style="margin-top:8px">
+          Contact: <a href="mailto:vimal88700@gmail.com">vimal88700@gmail.com</a> · Instagram: <a href="https://instagram.com/viimal.xarcst">viimal.xarcst</a>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>
+
+src/pages/index.astro
+***
+import BaseLayout from "../layouts/BaseLayout.astro";
+const categories = ["Tech", "Science", "World Records", "World News"];
+***
+<BaseLayout title="Effective Media — tech, science, records, world news" description="Simple text and motion stories on tech, science, world records, and world news.">
+  <section class="card">
+    <h1 style="margin-top:0">Effective Media</h1>
+    <p>Simple text and motion stories on tech, science, world records, and what matters now.</p>
+    <form name="email-signup" method="POST" netlify netlify-honeypot="bot-field" action="/thank-you" style="margin-top:16px">
+      <p class="hidden"><label>Don’t fill this out: <input name="bot-field" /></label></p>
+      <input type="hidden" name="form-name" value="email-signup" />
+      <label>Name (optional)</label>
+      <input name="name" type="text" placeholder="Name" />
+      <label>Email</label>
+      <input name="email" type="email" placeholder="Email" required />
+      <label>What do you want to see?</label>
+      <input name="preference" type="text" placeholder="Topics or interests" />
+      <button type="submit" class="btn">Get updates</button>
+      <div><small>By subscribing, you consent to receive updates. See our <a href="/privacy">Privacy Policy</a>.</small></div>
+    </form>
+  </section>
+
+  <section style="margin-top:24px">
+    <h2>Categories</h2>
+    <ul>
+      {categories.map((c) => <li>{c}</li>)}
+    </ul>
+    <p><a href="/blog">Read the blog →</a></p>
+  </section>
+</BaseLayout>
+
+src/pages/about.astro
+***
+import BaseLayout from "../layouts/BaseLayout.astro";
+***
+<BaseLayout title="About — Effective Media">
+  <h1>About Effective Media</h1>
+  <p>Normal to advanced tech news, scientific achievements, world records, and global happenings — in simple text and motion pictures.</p>
+</BaseLayout>
+
+src/pages/blog/index.astro
+***
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import { getCollection } from "astro:content";
+const posts = await getCollection("blog");
+***
+<BaseLayout title="Blog — Effective Media">
+  <h1>Blog / Resources</h1>
+  <ul>
+    {posts.map((p) => (
+      <li><a href={`/blog/${p.slug}`}>{p.data.title}</a> — <small>{p.data.date.toDateString()}</small></li>
+    ))}
+  </ul>
+</BaseLayout>
+
+src/pages/blog/[...slug].astro
+***
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import { getCollection } from "astro:content";
+export async function getStaticPaths() {
+  const blog = await getCollection("blog");
+  return blog.map((p) => ({ params: { slug: p.slug.split("/") }, props: { p } }));
+}
+const { p } = Astro.props;
+const { Content } = await p.render();
+***
+<BaseLayout title={p.data.title}>
+  <article>
+    <h1>{p.data.title}</h1>
+    <p><small>{p.data.date.toDateString()}</small></p>
+    <Content />
+  </article>
+</BaseLayout>
+
+src/pages/contact.astro
+***
+import BaseLayout from "../layouts/BaseLayout.astro";
+***
+<BaseLayout title="Contact — Effective Media">
+  <h1>Contact</h1>
+  <p>Have a story or topic to suggest? Tell us what to cover next.</p>
+  <form name="contact" method="POST" netlify netlify-honeypot="bot-field" action="/thank-you">
+    <p class="hidden"><label>Don’t fill this out: <input name="bot-field" /></label></p>
+    <input type="hidden" name="form-name" value="contact" />
+    <label>Name</label>
+    <input name="name" type="text" />
+    <label>Email</label>
+    <input name="email" type="email" required />
+    <label>Message</label>
+    <textarea name="message" rows="5"></textarea>
+    <button type="submit" class="btn">Send</button>
+  </form>
+</BaseLayout>
+
+src/pages/privacy.astro
+***
+import BaseLayout from "../layouts/BaseLayout.astro";
+***
+<BaseLayout title="Privacy Policy — Effective Media">
+  <h1>Privacy Policy</h1>
+  <p>This website collects form submissions (name, email, preferences) for updates and inquiries. Submissions are processed by Netlify Forms. Unsubscribe at any time via the email footer.</p>
+</BaseLayout>
+
+src/pages/terms.astro
+***
+import BaseLayout from "../layouts/BaseLayout.astro";
+***
+<BaseLayout title="Terms — Effective Media">
+  <h1>Terms</h1>
+  <p>Use this site for informational purposes. Content is provided as-is and may include third-party sources.</p>
+</BaseLayout>
+
+src/pages/thank-you.astro
+***
+import BaseLayout from "../layouts/BaseLayout.astro";
+***
+<BaseLayout title="Thank you — Effective Media">
+  <h1>Thank you</h1>
+  <p>Submission received. We’ll be in touch soon.</p>
+</BaseLayout>
+
+src/content/config.ts
+import { defineCollection, z } from "astro:content";
+const blog = defineCollection({
+  type: "content",
+  schema: z.object({
+    title: z.string(),
+    date: z.date(),
+    excerpt: z.string().optional(),
+    category: z.enum(["Tech", "Science", "World Records", "World News"]),
+  }),
+});
+export const collections = { blog };
+
+src/content/blog/welcome.mdx
+***
+title: Welcome to Effective Media
+date: 2025-08-31
+excerpt: What Effective Media covers and how to follow along.
+category: Tech
+***
+Welcome! This is the first post for Effective Media. Expect short, clear updates in simple text and motion visuals across tech, science, world records, and world news.
+
+tsconfig.json
+{
+  "extends": "astro/tsconfigs/strictest"
+}
+
+README.md
+# Effective Media
+- Dev: npm install && npm run dev
+- Build: npm run build
+- Deploy: connect repo to Netlify; build: astro build; publish: dist
+
+Citations:
+[1] Build a blog tutorial: Create your first Astro project | Docs https://docs.astro.build/en/tutorial/1-setup/2/
+[2] Astro Minimal Example https://stackblitz.com/edit/github-gkbjpd
+[3] MicroWebStacks/astro-examples https://github.com/MicroWebStacks/astro-examples
+[4] Astro Minimal + Open Props https://stackblitz.com/edit/astro-openprops
+[5] Astro UI Framework [Full Book] https://www.freecodecamp.org/news/how-to-use-the-astro-ui-framework/
+[6] Netlify Forms on Astro (no framework) doesn't work - Support https://answers.netlify.com/t/netlify-forms-on-astro-no-framework-doesnt-work/103723
+[7] Install Astro | Docs https://docs.astro.build/en/install-and-setup/
+[8] Netlify forms not working (Astro) - Support https://answers.netlify.com/t/netlify-forms-not-working-astro/87364
+[9] The complete guide to file uploads in Astro applications https://uploadcare.com/blog/astro-file-upload/
+[10] Adding comments to my Astro blog using Netlify Forms - Emma Goto https://www.emgoto.com/astro-blog-comments/
+[11] Deploy An Astro site with Forms, Serverless Functions, and Redirects https://www.netlify.com/blog/deploy-an-astro-site-with-forms-serverless-functions-and-redirects/
+[12] Astro Toolbox - Netlify https://astro-toolbox.netlify.app
